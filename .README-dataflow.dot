@@ -1,0 +1,46 @@
+digraph G {
+  subgraph cluster_legend {
+    label="Legend";
+    legend [label="Kind of data\n(`conventional.filename`)"];
+    legend_ [shape=point, label=""];
+    legend -> legend_ [label=" tool"];
+  }
+
+  defects4j [label="Defects4J\nfault"];
+
+  buggy_lines [label="Fault\ninformation\n(`*.buggy.lines`)\n(`source-code.lines`)\n(`*.candidates`)\n(`sloc.csv`)"];
+
+  defects4j -> buggy_lines [label="`d4j_integration`"];
+
+  subgraph cluster_coverage_info {
+    label="Coverage information";
+    matrix [label="Which tests\ncover which\nstatements\n(`matrix`)"];
+    spectra [label="Statement\nline numbers\n(`spectra`)"];
+  }
+
+  _gzoltar [shape=point, label=""];
+  defects4j -> _gzoltar [label="GZoltar"];
+  _gzoltar -> matrix;
+  _gzoltar -> spectra;
+
+  subgraph cluster_mutation_info {
+    label="Mutation information";
+    killmap_csv [label="Killmap\n(`killmap.csv.gz`)"];
+    mutants_log [label="Mutants'\ndetails\n(`mutants.log`)"];
+  }
+
+  _killmap [shape=point, label=""];
+  defects4j -> _killmap [label="Killmap"];
+  _killmap -> killmap_csv;
+  _killmap -> mutants_log;
+
+  _pipeline [shape=point, label=""];
+  buggy_lines -> _pipeline;
+  matrix -> _pipeline;
+  spectra -> _pipeline;
+  killmap_csv -> _pipeline;
+  mutants_log -> _pipeline;
+
+  scores_csv [label="Scores for\nFL techniques\n(`scores.csv`)"]
+  _pipeline -> scores_csv [label=" Scoring pipeline"];
+}

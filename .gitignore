@@ -1,0 +1,10 @@
+target/
+data/scores_*.csv
+analysis
+data
+aws/fault-localization.pem
+killmap/bin/
+__pycache__/
+*.py[cod]
+*$py.class
+defects4j/
