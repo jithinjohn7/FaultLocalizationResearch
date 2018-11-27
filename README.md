@@ -106,9 +106,15 @@ Step 6: Run one of the Junit tests in Lang Project from command line without mav
     cp {Path to junit jar}/junit-4.10.jar .
     java -cp .:/tmp/Lang37/target/test-classes/:junit-4.10.jar:commons-lang-3.0-SNAPSHOT.jar org.junit.runner.JUnitCore org.apache.commons.lang3.ArrayUtilsAddTest
     
+Step 7: Run one of the junit test classes with tracer as a javaagent attached.
     
+    Session 2:
+        java -cp .:/tmp/Lang37/target/test-classes/:junit-4.10.jar:commons-lang-3.0-SNAPSHOT.jar -javaagent:/Users/jithinjohn/Downloads/CSC591/javaslicer/assembly/tracer.jar=tracefile:test.trace org.junit.runner.JUnitCore org.apache.commons.lang3.ArrayUtilsAddTest
 
-
+Step 8: Run slicer to produce slicing results
+    
+    Session 2:
+        java -Xmx2g -jar /Users/jithinjohn/Downloads/CSC591/javaslicer/assembly/slicer.jar -p test.trace org.apache.commons.lang3.ArrayUtils.addAll:2962:* > output.txt
 
 
 # Fault-localization-data repository
