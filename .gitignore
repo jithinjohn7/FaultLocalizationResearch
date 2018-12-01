@@ -8,3 +8,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 defects4j/
+.vscode
+automation/bin
+automation/include
+automation/lib
+automation/pyvenv.cfg
+automation/pip-selfcheck.json

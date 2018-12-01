@@ -1,0 +1,62 @@
+   ____ _____     _ _               
+  / ___|__  /___ | | |_ __ _ _ __   
+ | |  _  / // _ \| | __/ _` | '__| 
+ | |_| |/ /| (_) | | || (_| | |     
+  \____/____\___/|_|\__\__,_|_| 
+
+Name 	 Type 	 Default 	 Description
+INCLUDE_SUSPICIOUSNESS_VALUE 	 Boolean 	 true 	 When enable a verbose spectra will be printed
+allow_multiple_statements_per_line_number 	 Boolean 	 false 	 When true, instrumentation takes into account if there are multiple bytcode instructions for a single line number
+candidate_generation_algorithm 	 CandidateGeneration 	 STACCATO 	 Candidage Generation Algorithm (Values: [STACCATO])
+classesDir 	 String 	  	 Path of classes directory
+classes_file 	 String 	 classes 	 File in which the list of classes is stored
+coefficients 	 Coefficient[] 	 [OCHIAI] 	 Diagnose coefficients
+configurationID 	 String 	  	 Configuration ID of the experiment
+deps 	 String[] 	  	 All depedencies (e.g., jar files) of the project under test
+enable_asserts_for_gzoltar 	 Boolean 	 true 	 Checks assertions when running GZoltar
+faulty_components 	 String 	  	 Faulty components ID (format <class canonical name>{<method name#line number. Can define more than one faulty component by using a ':' separated list
+filter_spectra 	 FilterSpectra 	 TEST_CASES_WITHOUT_ANY_COVERAGE 	 Filter Spectra (Values: [NONE, TEST_CASES_WITHOUT_ANY_COVERAGE, COMPONENTS_TRIGGERED_BY_FAILING_TEST_CASES])
+granularity 	 Granularity 	 STATEMENT 	 Granularity level of instrumentation (Values: [STATEMENT, METHOD, CLASS])
+gzoltar_data_dir 	 String 	 gzoltar-data 	 Directory name where all output of GZoltar is saved
+include_deprecated_classes 	 Boolean 	 true 	 If enable deprecated classes will also be considered
+include_deprecated_methods 	 Boolean 	 true 	 If enable deprecated methods will also be considered
+include_local_classes 	 Boolean 	 true 	 If enable inner/anonymous classes will also be included
+instrument_test_classes 	 Boolean 	 false 	 If enable, coverage of test classes will also be considered
+instrumentation_strategy 	 InstrumentationStrategy 	 RUNTIME_COLLECTOR 	  (Values: [HIT_ARRAY, RUNTIME_COLLECTOR])
+is_running_a_gzoltar_test 	 Boolean 	 false 	 Specify that a GZoltar test is running. To be used only for debugging/testing purposes
+loglevel 	 LogLevel 	 INFO 	 Verbosity level of logger (Values: [NONE, INFO, DEBUG])
+major_javac 	 String 	  	 Javac executable of Major framework
+matrix_file 	 String 	 matrix 	 Coverage matrix file name
+max_client_memory 	 Integer 	 1024 	 Maximum memory (in MB) allocated for the GZ-client
+max_perm_size 	 Integer 	 256 	 MaxPermSize (in MB) for the client process
+mutant_dir 	 String 	  	 Mutant directory
+mutants 	 Integer 	 -1 	 Mutants ID
+mutants_dir 	 String 	 mutants 	 Directory to where mutants will be exported
+mutants_log 	 String 	 mutants.log 	 File with information about the generated mutants
+mutation_backend 	 MutationBackend 	 MAJOR 	 Mutation framework (Values: [MAJOR, PIT])
+mutation_strategy 	 MutationStrategy 	 METALLAXIS 	 Mutation strategy (Values: [METALLAXIS, MUSE])
+normalize_spectra 	 Boolean 	 true 	 If enable, the suspiciousness values are normalized
+output_variables 	 StatisticsVariables[] 	 [NUMBER_OF_CLASSES, NUMBER_OF_TEST_CLASSES, NUMBER_OF_UNIT_TEST_CASES, NUMBER_OF_COMPONENTS, AMBIGUITY_GROUPS, INFORMATION_GAIN, RHO] 	 Statistics variables to be saved. Can define more than one variable by using a ':' separated list
+print_matrix 	 Boolean 	 true 	 If enable coverage matrix is returned to a file
+print_spectra 	 Boolean 	 true 	 If enable spectra data is returned to a file
+projectID 	 String 	  	 Name of the project under test
+project_cp 	 String 	  	 Classpath of the Project Under Test (i.e., classes directory, test-classes directory, jar files, or class files
+serialize_spectra 	 Boolean 	 false 	 If enable, a spectra object is serialized to a file
+serialize_spectra_file 	 String 	 spectra.ser 	 File name of the spectra object
+show_progress_bar 	 Boolean 	 true 	 If enable, shows a progress bar on console
+sourcedir 	 String 	  	 Source directory
+spectra_file 	 String 	 spectra 	 Spectra file name
+star 	 Integer 	 2 	 Star value used on DStar suspiciousness formula
+statistics_backend 	 StatisticsBackend 	 CSV 	 Statistics backend (Values: [NONE, CONSOLE, CSV])
+statistics_file 	 String 	 statistics.csv 	 Statistics CSV file name
+strategy 	 Strategy 	 COVERAGE 	 Diagnose strategy (Values: [COVERAGE, MUTATION])
+targetclasses 	 String[] 	 [*] 	 Target class(es) to diagnose. A fully qualifying needs to be provided, e.g. org.foo.SomeClass. Can define more than one class by using a ':' separated list
+targetpackages 	 String[] 	  	 Target package(es) to diagnose. Can define more than one package by using a ':' separated list
+test_case_timeout 	 Integer 	 60 	 Maximum time (seconds) allowed to execute each atomic test case (-1 allows infinite time)
+test_strategy 	 TestStrategy 	 CLASS 	 Strategy to execute test cases (Values: [CLASS, ATOMIC])
+testclasses 	 String[] 	 [*] 	 Test class(es) to execute. A fully qualifying needs to be provided, e.g. org.foo.TestSomeClass. Can define more than one test by using a ':' separated list
+testpackages 	 String[] 	  	 Test package(es) to execute. Can define more than one test package by using a ':' separated list
+testsDir 	 String 	  	 Path of tests directory
+tests_file 	 String 	 tests 	 File in which the list of test-classes is stored
+timelimit 	 Integer 	 600 	 Maximum time (seconds) allowed to execute GZoltar (-1 allows infinite time)
+verbose_spectra 	 Boolean 	 true 	 When enable a verbose spectra will be printed
