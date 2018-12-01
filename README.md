@@ -126,19 +126,26 @@ Step 8: Run slicer to produce slicing results
         java -Xmx2g -jar /Users/jithinjohn/Downloads/CSC591/javaslicer/assembly/slicer.jar -p test.trace org.apache.commons.lang3.ArrayUtils.addAll:2962:* > output.txt
 
 ### Automation
+
 Change directory to automation/src/
+
 COMPILE:
-        javac -cp /tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests.java
+
+javac -cp /tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests.java
         
 RUN:
+
 1) Running a test file
-        java -cp /tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests /tmp/Lang37 runTestFile org.apache.commons.lang3.ArrayUtilsAddTest
+
+java -cp /tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests /tmp/Lang37 runTestFile org.apache.commons.lang3.ArrayUtilsAddTest
         
 2) Running a test specific test case
-        java -cp /tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests /tmp/Lang37 runTestCase org.apache.commons.lang3.ArrayUtilsAddTest testJira567
+
+java -cp /tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests /tmp/Lang37 runTestCase org.apache.commons.lang3.ArrayUtilsAddTest testJira567
     
 3) Getting test cases of a test file
-        java -cp /tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests /tmp/Lang37 getTestCases org.apache.commons.lang3.ArrayUtilsAddTest
+
+java -cp /tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests /tmp/Lang37 getTestCases org.apache.commons.lang3.ArrayUtilsAddTest
 
 # Fault-localization-data repository
 
