@@ -67,7 +67,7 @@ public class InvokeTests {
 					testCase = args[3];
 					executeSingleTestCase(c, testCase);
 				} else if("getTestCases".equalsIgnoreCase(command)) {
-					Map<String, Set<String>> methods = getTestCases(c, testClass);
+					getTestCases(c, testClass);
 				}
 			} else {
 				System.out.println("Invalid command. Supported commands: runTestFile, runTestCase, getTestCases");
@@ -97,7 +97,7 @@ public class InvokeTests {
 		System.out.println(result.wasSuccessful());
 	}
 
-	public static Map<String, Set<String>> getTestCases(Class c, String testClass) {
+	public static void getTestCases(Class c, String testClass) {
 		Map<String, Set<String>> methods = new LinkedHashMap<String, Set<String>>();
 	    for (Description test : Request.aClass(c).getRunner().getDescription().getChildren()) {
 	      if (test.getMethodName() == null) {
@@ -119,7 +119,11 @@ public class InvokeTests {
 	        methods.put(test.getClassName(), ms);
 	      }
 		}
-		return methods;
+		
+		for(String key : methods.keySet()) {
+			Set<String> values = methods.get(key);
+			for(String v : values) System.out.println(v);
+		}
 	}
 
 }
