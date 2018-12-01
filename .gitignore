@@ -13,3 +13,4 @@ automation/bin
 automation/include
 automation/lib
 automation/pyvenv.cfg
+automation/pip-selfcheck.json
