@@ -9,7 +9,7 @@ __pycache__/
 *$py.class
 defects4j/
 .vscode
-./automation/bin
-./automation/include
-./automation/lib
-./automation/pyenv.cfg
+automation/bin
+automation/include
+automation/lib
+automation/pyvenv.cfg
