@@ -104,7 +104,7 @@ with open(relevant_test_file) as f:
 test_class_method_map = collections.OrderedDict()
 
 for testclass in relevant_tests_list:
-    list_test_command="java -cp "+ ":".join(class_path) + " InvokeTests "+project_dir + " getTestCases " + testclass
+    list_test_command="java -cp "+ ":".join(class_path) + " InvokeTests "+defect_dir + " getTestCases " + testclass
     print("Running " + list_test_command)
     tests_list = subprocess.run(list_test_command,stdout=subprocess.PIPE,shell=True)
     tests_list = tests_list.stdout.decode("utf-8")
@@ -131,7 +131,7 @@ for testclass in test_class_method_map:
         tracer_command="java -cp "+ ":".join(class_path) + " -javaagent:"+ \
         os.path.join(tracer_dir,"tracer.jar")+"=tracefile:"+ \
         os.path.join(target_dir,"traces","trace."+testclass+"#"+testname)+ \
-        " InvokeTests "+project_dir+" runTestCase " + testclass + " " + testname
+        " InvokeTests "+defect_dir+" runTestCase " + testclass + " " + testname
         print("Running "+tracer_command)
         os.system(tracer_command)
         
@@ -142,7 +142,7 @@ for testclass in test_class_method_map:
         os.system(traceReader_command)
 
         count+=1
-        if count==3:
+        if count==1:
             break
     break
 
@@ -161,12 +161,32 @@ grep_tests_list = grep_tests_list.splitlines()
 
 print(grep_tests_list)
 for i in range(len(grep_tests_list)):
+    grep_tests_list[i] = os.path.basename(grep_tests_list[i])[6:]
     grep_tests_list[i] = grep_tests_list[i].split("#")
     grep_tests_list[i][1]=grep_tests_list[i][1][:-7]
 
 print("Count of grep result: "+str(len(grep_tests_list)))
 
-#Project name
-#bug ID
-#workspace
+with open(os.path.join(cwd,"test_count.txt"),"w") as f:
+    f.write("Count of grep result: "+str(len(grep_tests_list)))
 
+os.chdir(os.path.join(cwd,"src"))
+for test in grep_tests_list:
+    testclass=test[0]
+    testname=test[1]
+    assert_list_command="java -cp "+ ":".join(class_path) +  \
+    " InvokeTests "+defect_dir+" getAssertLines " + testclass + " " + testname
+    print("Running "+assert_list_command)
+    assert_list = subprocess.run(assert_list_command,stdout=subprocess.PIPE,shell=True)
+    assert_list = assert_list.stdout.decode("utf-8")
+    assert_list = assert_list.splitlines()
+    slicing_criteria=[]
+    for line in assert_list:
+        slicing_criteria+=[testclass+"."+testname+":"+line+":*"]
+    slice_command="java -Xmx2g -jar "+os.path.join(tracer_dir,"slicer.jar")+" -p "+ \
+        os.path.join(target_dir,"traces","trace."+testclass+"#"+testname) +  \
+        " " + ",".join(slicing_criteria) + \
+        " > " + os.path.join(target_dir,"traces","trace."+testclass+"#"+testname+".slice")
+    print("Running "+slice_command)
+    os.system(slice_command)
+    coverage_line_grep_command= "grep \"" + relevant_class  + "\\.\" " + os.path.join(target_dir,"traces","trace."+testclass+"#"+testname+".slice")
