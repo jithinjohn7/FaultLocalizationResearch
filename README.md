@@ -147,6 +147,10 @@ java -cp .:/tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/targ
 
 java -cp .:/tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests /tmp/Lang37 getTestCases org.apache.commons.lang3.ArrayUtilsAddTest
 
+4) Getting line numbers of assert statements in a test case
+
+java -cp .:/tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/target/junit-4.10.jar:/tmp/Lang37/target/commons-lang-3.0-SNAPSHOT.jar InvokeTests /tmp/Lang37 getAssertLines org.apache.commons.lang3.ArrayUtilsAddTest testJira567
+
 # Fault-localization-data repository
 
 This repository contains data files, data-collection scripts, and data-analysis
