@@ -8,7 +8,7 @@ java -cp .:/tmp/Lang37/target/:/tmp/Lang37/target/test-classes/:/tmp/Lang37/targ
 
 Explanation:
 - <DEFECTS4J CHECKED OUT DIR> 	= /tmp/Lang37
-- <COMMAND>						= runTestFile / runTestCase / getTestCases
+- <COMMAND>						= runTestFile / runTestCase / getTestCases / getAssertLines
 - <TEST CLASS NAME>				= org.apache.commons.lang3.ArrayUtilsAddTest
 - <TEST METHOD NAME>			= "testJira567" (Needed only for command 
 												"runTestCase")
@@ -44,6 +44,7 @@ public class InvokeTests {
 			validCommands.add("runTestCase");
 			validCommands.add("runTestFile");
 			validCommands.add("getTestCases");
+			validCommands.add("getAssertLines");
 
 			String testClass = "";
 			Class<?> c = null;
@@ -68,6 +69,13 @@ public class InvokeTests {
 					executeSingleTestCase(c, testCase);
 				} else if("getTestCases".equalsIgnoreCase(command)) {
 					getTestCases(c, testClass);
+				} else if("getAssertLines".equalsIgnoreCase(command)) {
+					if(args.length != 4 || args[3].isEmpty()) {
+						System.out.println("Invalid test case method name");
+						System.exit(0);
+					}
+					testCase = args[3];
+					getAssertLines(directoryPath, testClass, testCase);
 				}
 			} else {
 				System.out.println("Invalid command. Supported commands: runTestFile, runTestCase, getTestCases");
@@ -123,6 +131,38 @@ public class InvokeTests {
 		for(String key : methods.keySet()) {
 			Set<String> values = methods.get(key);
 			for(String v : values) System.out.println(v);
+		}
+	}
+
+	public static void getAssertLines(String dir, String testClass, String methodName) {
+		String path = dir + "/src/test/";
+		path += testClass.replaceAll("\\.", "/") + ".java";
+		try {
+			File file = new File(path);
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			List<Integer> lines = new ArrayList<Integer>();
+			int lineNo = 1;
+			boolean methodStarted = false;
+			String line;
+			while((line = br.readLine()) != null) {
+				if(line.contains(methodName)) {
+					methodStarted = true;
+					lineNo++;
+					continue;
+				}
+				if(methodStarted) {
+					if(line.trim().startsWith("assert")) lines.add(lineNo);
+					else if(line.trim().startsWith("public") || line.trim().startsWith("private") || line.trim().startsWith("protected")) {
+						break;
+					}
+				}
+				
+				lineNo++;
+			}
+			for(int l : lines) System.out.println(l);
+		} catch(Exception e) {
+			System.out.println("Test file not found");
+			System.exit(0);
 		}
 	}
 
