@@ -40,7 +40,7 @@ public class InvokeTests {
 			}
 			String command = args[1];
 
-			List<String> validCommands = new ArrayList<>();
+			List<String> validCommands = new ArrayList<String>();
 			validCommands.add("runTestCase");
 			validCommands.add("runTestFile");
 			validCommands.add("getTestCases");

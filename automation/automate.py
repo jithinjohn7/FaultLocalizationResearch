@@ -2,9 +2,11 @@ import os
 import sys
 import shutil
 import subprocess
+import collections
 
 project_id = sys.argv[1]
 defect_id = sys.argv[2]
+cwd=os.path.dirname(os.path.abspath(__file__))
 java6_home = "/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home"
 java8_home = "/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home"
 JAVA_HOME="JAVA_HOME"
@@ -19,6 +21,8 @@ JAVA_HOME="JAVA_HOME"
 
 if os.environ.get("D4J_HOME") is None or os.environ.get("GZOLTAR_JAR") is None or os.environ.get("SLOC_HOME"):
     sys.exit('Error! Please set D4J_HOME, GZOLTAR_JAR and SLOC_HOME')
+
+d4j_dir=os.environ.get("D4J_HOME")
 
 if shutil.which("defects4j") is None:
     sys.exit("Please add defects4j to the PATH variable")
@@ -68,15 +72,99 @@ package_command="mvn -Dmaven.test.failure.ignore=true install"
 
 os.environ[JAVA_HOME]=java6_home
 os.chdir(defect_dir)
+print("Running " + compile_command)
 os.system(compile_command)
+print("Running " + package_command)
 os.system(package_command)
 
+target_dir = os.path.join(defect_dir,"target")
 
-# os.chdir(os.path.join(defect_dir,"target"))
-
+os.chdir(target_dir)
 junit_get_command = "wget https://github.com/downloads/junit-team/junit/junit-4.10.jar"
+print("Running " + junit_get_command)
+os.system(junit_get_command)
 
-# os.system(junit_get_command)
+# os.environ[JAVA_HOME]=java8_home
+
+junit_path = os.path.join(target_dir,"junit-4.10.jar")
+class_path=[".",target_dir,os.path.join(target_dir,"test-classes"),os.path.join(target_dir,"commons-lang-3.0-SNAPSHOT.jar"),junit_path]
+
+
+os.chdir(os.path.join(cwd,"src"))
+compile_invoke_command = "javac -cp "+ ":".join(class_path) + " InvokeTests.java"
+print("Running " + compile_invoke_command)
+os.system(compile_invoke_command)
+
+
+relevant_tests_list=None
+relevant_test_file=os.path.join(d4j_dir,"framework","projects",project_id,"relevant_tests",defect_id)
+with open(relevant_test_file) as f:
+    relevant_tests_list=f.read().splitlines()
+
+test_class_method_map = collections.OrderedDict()
+
+for testclass in relevant_tests_list:
+    list_test_command="java -cp "+ ":".join(class_path) + " InvokeTests "+project_dir + " getTestCases " + testclass
+    print("Running " + list_test_command)
+    tests_list = subprocess.run(list_test_command,stdout=subprocess.PIPE,shell=True)
+    tests_list = tests_list.stdout.decode("utf-8")
+    tests_list = tests_list.splitlines()
+    test_class_method_map[testclass] = tests_list
+    
+
+os.environ[JAVA_HOME]=java8_home
+os.chdir(cwd)
+if not os.path.exists("./javaslicer"):
+    os.system("git clone https://github.com/hammacher/javaslicer")
+    os.chdir("./javaslicer")
+    os.system("bash assemble.sh")
+    
+tracer_dir = os.path.join(cwd,"javaslicer","assembly")
+
+#os.system("cp "+os.path.join(cwd,"javaslicer","assembly","*.jar")+" "+target_dir    )
+
+os.chdir(os.path.join(cwd,"src"))
+os.makedirs(os.path.join(target_dir,"traces"))
+count=0
+for testclass in test_class_method_map:
+    for testname in test_class_method_map[testclass]:
+        tracer_command="java -cp "+ ":".join(class_path) + " -javaagent:"+ \
+        os.path.join(tracer_dir,"tracer.jar")+"=tracefile:"+ \
+        os.path.join(target_dir,"traces","trace."+testclass+"#"+testname)+ \
+        " InvokeTests "+project_dir+" runTestCase " + testclass + " " + testname
+        print("Running "+tracer_command)
+        os.system(tracer_command)
+        
+        traceReader_command="java -jar "+os.path.join(tracer_dir,"traceReader.jar")+" "+ \
+        os.path.join(target_dir,"traces","trace."+testclass+"#"+testname) + " > " \
+        + os.path.join(target_dir,"traces","trace."+testclass+"#"+testname+".output")
+        print("Running "+traceReader_command)
+        os.system(traceReader_command)
+
+        count+=1
+        if count==3:
+            break
+    break
+
+gzoltars_dir=os.path.join(root_directory,"gzoltars",project_id,defect_id)
+
+relevant_class=""
+
+with open(os.path.join(gzoltars_dir,"spectra")) as f:
+    relevant_class=f.read().splitlines()[0].split("#")[0]
+
+grep_relevant_command="grep -rl "+relevant_class+" "+os.path.join(target_dir,"traces")
+print("Running "+grep_relevant_command)
+grep_tests_list = subprocess.run(grep_relevant_command,stdout=subprocess.PIPE,shell=True)
+grep_tests_list = grep_tests_list.stdout.decode("utf-8")
+grep_tests_list = grep_tests_list.splitlines()
+
+print(grep_tests_list)
+for i in range(len(grep_tests_list)):
+    grep_tests_list[i] = grep_tests_list[i].split("#")
+    grep_tests_list[i][1]=grep_tests_list[i][1][:-7]
+
+print("Count of grep result: "+str(len(grep_tests_list)))
 
 #Project name
 #bug ID
