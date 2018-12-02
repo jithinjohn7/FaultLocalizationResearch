@@ -3,7 +3,7 @@
 [DEBUG] DATA_DIR: /Users/jithinjohn/Downloads/CSC591/fault-localization-data/gzoltar/gzoltars/Lang/37
 [DEBUG] TOOL: developer
 [DEBUG] TESTS_DIR: 
-[DEBUG] TMP_DIR: /tmp/jithinjohn/gzoltar_74022_Lang-37
+[DEBUG] TMP_DIR: /tmp/jithinjohn/gzoltar_70241_Lang-37
 [DEBUG] DIR_PROJECT: /Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang
 [DEBUG] DIR_LOADED_CLASSES: /Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/loaded_classes
 [DEBUG] DIR_RELEVANT_TESTS: /Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/relevant_tests
@@ -13,8 +13,8 @@ Picked up _JAVA_OPTIONS: -XX:MaxHeapSize=1024m -Xmx4096m
 java version "1.8.0_191"
 Java(TM) SE Runtime Environment (build 1.8.0_191-b12)
 Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)
-[INFO] Checking out Lang-37 to /tmp/jithinjohn/gzoltar_74022_Lang-37
-Check out ea140fb5 to /private/tmp/jithinjohn/gzoltar_74022_Lang-37........ OK
+[INFO] Checking out Lang-37 to /tmp/jithinjohn/gzoltar_70241_Lang-37
+Check out ea140fb5 to /private/tmp/jithinjohn/gzoltar_70241_Lang-37........ OK
 Init local repository...................................................... OK
 Tag post-fix revision...................................................... OK
 Run post-checkout hook..................................................... OK
@@ -29,12 +29,12 @@ Check out program version: Lang-37b........................................ OK
 [DEBUG] LOADED_SUB_CLASSES: org.apache.commons.lang3.ArrayUtils$*:
 [DEBUG] RELEVANT_TESTS: org.apache.commons.lang3.ArrayUtilsAddTest:org.apache.commons.lang3.ArrayUtilsRemoveTest:org.apache.commons.lang3.ArrayUtilsTest:org.apache.commons.lang3.BooleanUtilsTest:org.apache.commons.lang3.CharEncodingTest:org.apache.commons.lang3.CharSetTest:org.apache.commons.lang3.CharSetUtilsTest:org.apache.commons.lang3.ClassUtilsTest:org.apache.commons.lang3.StringEscapeUtilsTest:org.apache.commons.lang3.StringUtilsEqualsIndexOfTest:org.apache.commons.lang3.StringUtilsSubstringTest:org.apache.commons.lang3.StringUtilsTest:org.apache.commons.lang3.ValidateTest:org.apache.commons.lang3.builder.ReflectionToStringBuilderExcludeTest:org.apache.commons.lang3.exception.ExceptionUtilsTest:org.apache.commons.lang3.reflect.ConstructorUtilsTest:org.apache.commons.lang3.reflect.FieldUtilsTest:org.apache.commons.lang3.reflect.MethodUtilsTest:org.apache.commons.lang3.text.StrBuilderTest:org.apache.commons.lang3.text.StrTokenizerTest:
 [DEBUG] TRIGGER_TESTS_FILE: /Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/trigger_tests/37
-[DEBUG] CP: /Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/lib/junit-4.11.jar:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/junit/junit/4.7/junit-4.7.jar:/private/tmp/jithinjohn/gzoltar_74022_Lang-37/target/classes:/private/tmp/jithinjohn/gzoltar_74022_Lang-37/target/test-classes:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/cglib.jar:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/asm.jar:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/easymock.jar:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/commons-io.jar
+[DEBUG] CP: /Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/lib/junit-4.11.jar:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/junit/junit/4.7/junit-4.7.jar:/private/tmp/jithinjohn/gzoltar_70241_Lang-37/target/classes:/private/tmp/jithinjohn/gzoltar_70241_Lang-37/target/test-classes:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/cglib.jar:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/asm.jar:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/easymock.jar:/Users/jithinjohn/Downloads/CSC591/defects4j/framework/projects/Lang/lib/commons-io.jar
 [INFO] Compiling Lang-37
 Running ant (compile)...................................................... OK
 Running ant (compile.tests)................................................ OK
 [INFO] Running GZoltar
-[INFO] Start: Sun Nov 25 10:43:46 PST 2018
+[INFO] Start: Sat Dec  1 09:26:57 PST 2018
    ____ _____     _ _               
   / ___|__  /___ | | |_ __ _ _ __   
  | |  _  / // _ \| | __/ _` | '__| 
@@ -1541,7 +1541,6 @@ java.lang.ClassNotFoundException: java.lang.xxx
 * Finished org.apache.commons.lang3.ArrayUtilsTest#testIndexOfWithStartIndex
 * Started org.apache.commons.lang3.ArrayUtilsTest#testContainsDouble
 * Finished org.apache.commons.lang3.ArrayUtilsTest#testContainsDouble
-* Filtering test cases that do not cover any component
 * Sending data to master
 * Closing connection with client
 * Performing fault localization
@@ -1550,7 +1549,7 @@ java.lang.ClassNotFoundException: java.lang.xxx
 * Writing spectra to '/Users/jithinjohn/Downloads/CSC591/fault-localization-data/gzoltar/gzoltars/Lang/37/spectra'
 * Metrics
 * Computation finished
-[INFO] End: Sun Nov 25 10:43:51 PST 2018
+[INFO] End: Sat Dec  1 09:27:02 PST 2018
 [DEBUG] MATRIX OK
 [DEBUG] SPECTRA OK
 
