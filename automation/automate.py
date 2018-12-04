@@ -3,6 +3,7 @@ import sys
 import shutil
 import subprocess
 import collections
+import multiprocessing
 
 project_id = sys.argv[1]
 defect_id = sys.argv[2]
@@ -125,6 +126,7 @@ tracer_dir = os.path.join(cwd,"javaslicer","assembly")
 
 
 grep_tests_list=[]
+kill_count=0
 
 gzoltars_dir=os.path.join(root_directory,"gzoltars",project_id,defect_id)
 
@@ -154,7 +156,17 @@ for testclass in test_class_method_map:
         os.path.join(traces_dir,"trace."+testclass+"#"+testname) + " > " \
         + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output")
         print("Running "+traceReader_command)
-        os.system(traceReader_command)
+        p = multiprocessing.Process(target=os.system(traceReader_command))
+        p.start()
+
+        p.join(300)
+
+        if p.is_alive():
+            print("ERROR: running for too long... let's kill command: "+traceReader_command)
+            kill_count +=1
+            # Terminate
+            p.terminate()
+            p.join()
 
         grep_relevant_command="grep -rl "+relevant_class+" "+os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output")
         print("Running "+grep_relevant_command)
@@ -163,6 +175,7 @@ for testclass in test_class_method_map:
         if not grep_result is '':
             grep_tests_list += grep_result.splitlines()
         print("Count of grep result: "+str(len(grep_tests_list)))
+        print("Count killed test: "+str(kill_count))
 
         print("Removing traceReader output file: "+os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output"))
         os.remove(os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output"))
