@@ -5,6 +5,9 @@ import subprocess
 import collections
 import multiprocessing
 import json
+from subprocess import Popen
+from itertools import islice
+import resource
 
 project_id = sys.argv[1]
 defect_id = sys.argv[2]
@@ -57,43 +60,43 @@ bug_count = int(count_line[1])
 if int(defect_id) > bug_count:
     sys.exit("Please provide valid bug id")
 
-checkout_command = "defects4j checkout -p "+project_id+" -v "+defect_id+"b -w "+project_dir+"/"+defect_id
-
-#Checkout Project with Bug ID
-print("Running " + checkout_command)
-os.system(checkout_command)
-
-gzoltar_path = os.environ["GZOLTAR_JAR"]
-gzoltar_path = gzoltar_path.split('/')[:-1]
-gzoltar_path += ["run_gzoltar.sh"]
-gzoltar_path = '/'.join(gzoltar_path)
-
-run_gzoltar_command = "bash " + gzoltar_path + " " + project_id + " " + defect_id + " " +  root_directory+ " developer"
-
-print("Running " + run_gzoltar_command)
-os.system(run_gzoltar_command)
-
 defect_dir = os.path.join(project_dir,defect_id)
-
-compile_command="mvn compile"
-
-package_command="mvn -Dmaven.test.failure.ignore=true install"
-
-os.environ[JAVA_HOME]=java6_home
-os.chdir(defect_dir)
-print("Running " + compile_command)
-os.system(compile_command)
-print("Running " + package_command)
-os.system(package_command)
-
 target_dir = os.path.join(defect_dir,"target")
 
-os.chdir(target_dir)
-junit_get_command = "wget https://github.com/downloads/junit-team/junit/junit-4.10.jar"
-print("Running " + junit_get_command)
-os.system(junit_get_command)
+if not os.path.exists(os.path.join(project_dir,defect_id)):
+    checkout_command = "defects4j checkout -p "+project_id+" -v "+defect_id+"b -w "+project_dir+"/"+defect_id
 
-# os.environ[JAVA_HOME]=java8_home
+    #Checkout Project with Bug ID
+    print("Running " + checkout_command)
+    os.system(checkout_command)
+
+    gzoltar_path = os.environ["GZOLTAR_JAR"]
+    gzoltar_path = gzoltar_path.split('/')[:-1]
+    gzoltar_path += ["run_gzoltar.sh"]
+    gzoltar_path = '/'.join(gzoltar_path)
+
+    run_gzoltar_command = "bash " + gzoltar_path + " " + project_id + " " + defect_id + " " +  root_directory+ " developer"
+
+    print("Running " + run_gzoltar_command)
+    os.system(run_gzoltar_command)
+
+    compile_command="mvn compile"
+
+    package_command="mvn -Dmaven.test.failure.ignore=true install"
+
+    os.environ[JAVA_HOME]=java6_home
+    os.chdir(defect_dir)
+    print("Running " + compile_command)
+    os.system(compile_command)
+    print("Running " + package_command)
+    os.system(package_command)
+
+    os.chdir(target_dir)
+    junit_get_command = "wget https://github.com/downloads/junit-team/junit/junit-4.10.jar"
+    print("Running " + junit_get_command)
+    os.system(junit_get_command)
+
+    # os.environ[JAVA_HOME]=java8_home
 
 junit_path = os.path.join(target_dir,"junit-4.10.jar")
 class_path=[".",target_dir,os.path.join(target_dir,"test-classes"),os.path.join(target_dir,"commons-lang-3.0-SNAPSHOT.jar"),junit_path]
@@ -104,21 +107,6 @@ compile_invoke_command = "javac -cp "+ ":".join(class_path) + " InvokeTests.java
 print("Running " + compile_invoke_command)
 os.system(compile_invoke_command)
 
-
-# relevant_tests_list=None
-# relevant_test_file=os.path.join(d4j_dir,"framework","projects",project_id,"relevant_tests",defect_id)
-# with open(relevant_test_file) as f:
-#     relevant_tests_list=f.read().splitlines()
-
-# test_class_method_map = collections.OrderedDict()
-
-# for testclass in relevant_tests_list:
-#     list_test_command="java -cp "+ ":".join(class_path) + " InvokeTests "+defect_dir + " getTestCases " + testclass
-#     print("Running " + list_test_command)
-#     tests_list = subprocess.run(list_test_command,stdout=subprocess.PIPE,shell=True)
-#     tests_list = tests_list.stdout.decode("utf-8")
-#     tests_list = tests_list.splitlines()
-#     test_class_method_map[testclass] = tests_list
     
 
 os.environ[JAVA_HOME]=java8_home
@@ -165,10 +153,6 @@ os.chdir(tacoco_dir)
 # os.system(tacoco_command_1)
 
 
-tacoco_command = "bash " + os.path.join(cwd,"tacoco","scripts","run-tacoco")+" " + defect_dir + " " + tacoco_dir
-print("Running command "+ tacoco_command)
-os.system(tacoco_command)
-
 #Read cov-matrix.json and find out activating tests
 
 cov_matrix_fileName = defect_id + "-cov-matrix.json"
@@ -176,13 +160,42 @@ cov_matrix_filePath = os.path.join(tacoco_dir,"tacoco_output",cov_matrix_fileNam
 
 tacoco_result_dir=os.path.join(root_directory,"tacocos")
 
+tacoco_command = "bash " + os.path.join(cwd,"tacoco","scripts","run-tacoco")+" " + defect_dir + " " + tacoco_dir
+
+
 if not os.path.exists(os.path.join(tacoco_result_dir,project_id)):
     os.makedirs(os.path.join(tacoco_result_dir,project_id))
-os.rename(cov_matrix_filePath,os.path.join(tacoco_result_dir,project_id,cov_matrix_fileName))
+
+# If tacoco result exist then don't run again
+if not os.path.exists(os.path.join(tacoco_result_dir,project_id,cov_matrix_fileName)):
+    print("Running command "+ tacoco_command)
+    os.system(tacoco_command)
+    os.rename(cov_matrix_filePath,os.path.join(tacoco_result_dir,project_id,cov_matrix_fileName))
 
 cov_matrix_filePath=os.path.join(tacoco_result_dir,project_id,cov_matrix_fileName)
 
+
+# Using Slice File
+
+
+#print(column_numbers)
+
+cov_matrix = []
+start,end = 0,0
 activating_tests = []
+masterTestsList = []
+
+def extractClassAndTestName(s):
+    testName,testClass = s.split('(')
+    testClass = testClass.split(')')[0]
+    return [testClass,testName]
+
+def extractTestInfoAndIndexes(element):
+    masterIndex = activating_tests.index(element)
+    ClassName = extractClassAndTestName(element)
+    return ClassName + [masterIndex]
+
+
 with open(cov_matrix_filePath,'r') as f:
     datastore = json.load(f)
     masterTestsList = datastore['testsIndex']
@@ -193,15 +206,28 @@ with open(cov_matrix_filePath,'r') as f:
     for i in range(len(datastore['sources'])):
         if str(datastore['sources'][i]['source']['fullName']) == javaFilePath:
             activating_tests_sequence = i
+            cov_matrix = datastore['sources'][i]['testStmtMatrix']
+            start = datastore['sources'][i]['source']['firstLine']
+            
+            print(i)
+            print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+            end = datastore['sources'][i]['source']['lastLine']
+    
             break
 
     activating_tests_indexes = datastore['sources'][activating_tests_sequence]['activatingTests']
     activating_tests = list(map(masterTestsList.__getitem__,activating_tests_indexes))
+
+
+
 def extractTest(s):
     testName,testClass = s.split('(')
     testClass = testClass.split(')')[0]
     return [testClass,testName]
-activating_tests = list(map(extractTest,activating_tests))
+
+activating_tests = list(map(extractTestInfoAndIndexes,activating_tests))
+
+
 #print(len(activating_tests))
 print(activating_tests)
 
@@ -211,75 +237,46 @@ if not os.path.exists(os.path.join(root_directory,"traces",project_id,defect_id)
 traces_dir = os.path.join(root_directory,"traces",project_id,defect_id)
 count=0
 
-#for testclass in test_class_method_map:
- #   for testname in test_class_method_map[testclass]:
 
-for testclass,testname in activating_tests:
-    # if os.path.exists(os.path.join(traces_dir,"trace."+testclass+"#"+testname)):
-    #     print("Skipping! Tracer output already exists for "+testclass+"#"+testname)
-    #     continue
+tracer_commands=[]
+for test in activating_tests:
+    testclass=test[0]
+    testname=test[1]
+    if os.path.exists(os.path.join(traces_dir,"trace."+testclass+"#"+testname)):
+        # print("Skipping! Tracer output already exists for "+testclass+"#"+testname)
+        continue
     tracer_command="java -cp "+ ":".join(class_path) + " -javaagent:"+ \
     os.path.join(tracer_dir,"tracer.jar")+"=tracefile:"+ \
     os.path.join(traces_dir,"trace."+testclass+"#"+testname)+ \
     " InvokeTests "+defect_dir+" runTestCase " + testclass + " " + testname
-    print("Running "+tracer_command)
-    os.system(tracer_command)
-        
-#         traceReader_command="java -jar "+os.path.join(tracer_dir,"traceReader.jar")+" "+ \
-#         os.path.join(traces_dir,"trace."+testclass+"#"+testname) + " > " \
-#         + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output")
-#         print("Running "+traceReader_command)
-#         p = multiprocessing.Process(target=os.system(traceReader_command))
-#         p.start()
+    tracer_commands.append(tracer_command)
+    print("Preparing command "+tracer_command)
+    
+max_workers = 4  # no more than 2 concurrent processes
+processes = (Popen(cmd, shell=True) for cmd in tracer_commands)
+running_processes = list(islice(processes, max_workers))  # start new processes
+while running_processes:
+    for i, process in enumerate(running_processes):
+        if process.poll() is not None:  # the process has finished
+            running_processes[i] = next(processes, None)  # start new process
+            if running_processes[i] is None: # no new processes
+                del running_processes[i]
+                break
+    
 
-#         p.join(300)
-
-#         if p.is_alive():
-#             print("ERROR: running for too long... let's kill command: "+traceReader_command)
-#             kill_count +=1
-#             # Terminate
-#             p.terminate()
-#             p.join()
-
-#         grep_relevant_command="grep -rl "+relevant_class+" "+os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output")
-#         print("Running "+grep_relevant_command)
-#         grep_result = subprocess.run(grep_relevant_command,stdout=subprocess.PIPE,shell=True)
-#         grep_result = grep_result.stdout.decode("utf-8")
-#         if not grep_result is '':
-#             grep_tests_list += grep_result.splitlines()
-#         print("Count of grep result: "+str(len(grep_tests_list)))
-#         print("Count killed test: "+str(kill_count))
-
-#         print("Removing traceReader output file: "+os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output"))
-#         os.remove(os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output"))
-
-#     #     count+=1
-#     #     if count==1:
-#     #         break
-#     # break
-
-
-
-# print(grep_tests_list)
-# for i in range(len(grep_tests_list)):
-#     grep_tests_list[i] = os.path.basename(grep_tests_list[i])[6:]
-#     grep_tests_list[i] = grep_tests_list[i].split("#")
-#     grep_tests_list[i][1]=grep_tests_list[i][1][:-7]
-
-# print("Count of grep result: "+str(len(grep_tests_list)))
-
-# with open(os.path.join(cwd,"test_count.txt"),"w") as f:
-#     f.write("Count of grep result: "+str(len(grep_tests_list)))
-
+slicer_commands=[]
 os.chdir(os.path.join(cwd,"src"))
 # print("GREP LIST")
 # print(grep_tests_list)
 for test in activating_tests:
     testclass=test[0]
     testname=test[1]
+    if os.path.exists(os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")):
+        # print("Skipping! Slicer output already exists for "+testclass+"#"+testname)
+        continue
     assert_list_command="java -cp "+ ":".join(class_path) +  \
     " InvokeTests "+defect_dir+" getAssertLines " + testclass + " " + testname
-    print("Running "+assert_list_command)
+    # print("Running "+assert_list_command)
     assert_list = subprocess.run(assert_list_command,stdout=subprocess.PIPE,shell=True)
     assert_list = assert_list.stdout.decode("utf-8")
     assert_list = assert_list.splitlines()
@@ -290,6 +287,62 @@ for test in activating_tests:
         os.path.join(traces_dir,"trace."+testclass+"#"+testname) +  \
         " " + ",".join(slicing_criteria) + \
         " > " + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
-    print("Running "+slice_command)
-    os.system(slice_command)
-    coverage_line_grep_command= "grep \"" + relevant_class  + "\\.\" " + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
+    # print("Preparing "+slice_command)
+    slicer_commands.append(slice_command)
+    # os.system(slice_command)
+    # coverage_line_grep_command= "grep \"" + relevant_class  + "\\.\" " + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
+
+max_workers = 4  # no more than 2 concurrent processes
+processes = (Popen(cmd, shell=True) for cmd in slicer_commands)
+running_processes = list(islice(processes, max_workers))  # start new processes
+while running_processes:
+    for i, process in enumerate(running_processes):
+        if process.poll() is not None:  # the process has finished
+            running_processes[i] = next(processes, None)  # start new process
+            if running_processes[i] is None: # no new processes
+                del running_processes[i]
+                break
+
+
+summary_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-slicing.summary"),"w")
+
+print(len(cov_matrix),len(cov_matrix[0]))
+with open(os.path.join(tacoco_result_dir,project_id,defect_id+"-old-cov-matrix.json"),"w") as out:
+    json.dump(cov_matrix,out)
+for test in activating_tests:
+    testclass=test[0]
+    testname=test[1]
+    row_number = test[2]
+    slice_file = os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
+    column_numbers = []
+    with open(slice_file,'r') as f:
+        text = f.read()
+        lines = text.splitlines()
+        for line in lines:
+            if line[:36] == relevant_class+".":
+                test,number = line.split(':')
+                number = number.split(' ')[0]
+                column_numbers.append(number)
+    column_numbers = list(map(int,column_numbers))
+
+    column_numbers = list(set(column_numbers))
+    # print(column_numbers)
+    new_count = len(column_numbers)
+    old_count = cov_matrix[row_number].count(True)
+    summary_file.write(testclass+"#"+testname+" Diff: "+ str(old_count-new_count)  +" New Count: "+str(old_count)+" Old Count: "+str(new_count)+"\n")
+    cov_matrix[row_number][:] = [False]*len(cov_matrix[row_number])
+    for col in column_numbers:
+        try:
+            col -= start
+            cov_matrix[row_number][col] = True
+            # return_msg = "changed " + str(row_number) + " " + str(col)
+            # print(row_number,col)
+            # print(return_msg)
+        except:
+            print("ERROR: rwo: " + str(row_number)+" col: " + str(col))
+
+# print(cov_matrix)
+with open(os.path.join(tacoco_result_dir,project_id,defect_id+"-updated-cov-matrix.json"),"w") as out:
+    json.dump(cov_matrix,out)
+
+summary_file.close()
