@@ -3,6 +3,7 @@ import sys
 import shutil
 import subprocess
 import collections
+import multiprocessing
 
 project_id = sys.argv[1]
 defect_id = sys.argv[2]
@@ -123,28 +124,9 @@ tracer_dir = os.path.join(cwd,"javaslicer","assembly")
 
 #os.system("cp "+os.path.join(cwd,"javaslicer","assembly","*.jar")+" "+target_dir    )
 
-os.chdir(os.path.join(cwd,"src"))
-os.makedirs(os.path.join(target_dir,"traces"))
-count=0
-for testclass in test_class_method_map:
-    for testname in test_class_method_map[testclass]:
-        tracer_command="java -cp "+ ":".join(class_path) + " -javaagent:"+ \
-        os.path.join(tracer_dir,"tracer.jar")+"=tracefile:"+ \
-        os.path.join(target_dir,"traces","trace."+testclass+"#"+testname)+ \
-        " InvokeTests "+defect_dir+" runTestCase " + testclass + " " + testname
-        print("Running "+tracer_command)
-        os.system(tracer_command)
-        
-        traceReader_command="java -jar "+os.path.join(tracer_dir,"traceReader.jar")+" "+ \
-        os.path.join(target_dir,"traces","trace."+testclass+"#"+testname) + " > " \
-        + os.path.join(target_dir,"traces","trace."+testclass+"#"+testname+".output")
-        print("Running "+traceReader_command)
-        os.system(traceReader_command)
 
-        count+=1
-        if count==1:
-            break
-    break
+grep_tests_list=[]
+kill_count=0
 
 gzoltars_dir=os.path.join(root_directory,"gzoltars",project_id,defect_id)
 
@@ -153,11 +135,57 @@ relevant_class=""
 with open(os.path.join(gzoltars_dir,"spectra")) as f:
     relevant_class=f.read().splitlines()[0].split("#")[0]
 
-grep_relevant_command="grep -rl "+relevant_class+" "+os.path.join(target_dir,"traces")
-print("Running "+grep_relevant_command)
-grep_tests_list = subprocess.run(grep_relevant_command,stdout=subprocess.PIPE,shell=True)
-grep_tests_list = grep_tests_list.stdout.decode("utf-8")
-grep_tests_list = grep_tests_list.splitlines()
+os.chdir(os.path.join(cwd,"src"))
+if not os.path.exists(os.path.join(root_directory,"traces",project_id,defect_id)):
+    os.makedirs(os.path.join(root_directory,"traces",project_id,defect_id))
+traces_dir = os.path.join(root_directory,"traces",project_id,defect_id)
+count=0
+for testclass in test_class_method_map:
+    for testname in test_class_method_map[testclass]:
+        if os.path.exists(os.path.join(traces_dir,"trace."+testclass+"#"+testname)):
+            print("Skipping! Tracer output already exists for "+testclass+"#"+testname)
+            continue
+        tracer_command="java -cp "+ ":".join(class_path) + " -javaagent:"+ \
+        os.path.join(tracer_dir,"tracer.jar")+"=tracefile:"+ \
+        os.path.join(traces_dir,"trace."+testclass+"#"+testname)+ \
+        " InvokeTests "+defect_dir+" runTestCase " + testclass + " " + testname
+        print("Running "+tracer_command)
+        os.system(tracer_command)
+        
+        traceReader_command="java -jar "+os.path.join(tracer_dir,"traceReader.jar")+" "+ \
+        os.path.join(traces_dir,"trace."+testclass+"#"+testname) + " > " \
+        + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output")
+        print("Running "+traceReader_command)
+        p = multiprocessing.Process(target=os.system(traceReader_command))
+        p.start()
+
+        p.join(300)
+
+        if p.is_alive():
+            print("ERROR: running for too long... let's kill command: "+traceReader_command)
+            kill_count +=1
+            # Terminate
+            p.terminate()
+            p.join()
+
+        grep_relevant_command="grep -rl "+relevant_class+" "+os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output")
+        print("Running "+grep_relevant_command)
+        grep_result = subprocess.run(grep_relevant_command,stdout=subprocess.PIPE,shell=True)
+        grep_result = grep_result.stdout.decode("utf-8")
+        if not grep_result is '':
+            grep_tests_list += grep_result.splitlines()
+        print("Count of grep result: "+str(len(grep_tests_list)))
+        print("Count killed test: "+str(kill_count))
+
+        print("Removing traceReader output file: "+os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output"))
+        os.remove(os.path.join(traces_dir,"trace."+testclass+"#"+testname+".output"))
+
+    #     count+=1
+    #     if count==1:
+    #         break
+    # break
+
+
 
 print(grep_tests_list)
 for i in range(len(grep_tests_list)):
@@ -184,9 +212,9 @@ for test in grep_tests_list:
     for line in assert_list:
         slicing_criteria+=[testclass+"."+testname+":"+line+":*"]
     slice_command="java -Xmx2g -jar "+os.path.join(tracer_dir,"slicer.jar")+" -p "+ \
-        os.path.join(target_dir,"traces","trace."+testclass+"#"+testname) +  \
+        os.path.join(traces_dir,"trace."+testclass+"#"+testname) +  \
         " " + ",".join(slicing_criteria) + \
-        " > " + os.path.join(target_dir,"traces","trace."+testclass+"#"+testname+".slice")
+        " > " + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
     print("Running "+slice_command)
     os.system(slice_command)
-    coverage_line_grep_command= "grep \"" + relevant_class  + "\\.\" " + os.path.join(target_dir,"traces","trace."+testclass+"#"+testname+".slice")
+    coverage_line_grep_command= "grep \"" + relevant_class  + "\\.\" " + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
