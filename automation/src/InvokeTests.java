@@ -145,7 +145,7 @@ public class InvokeTests {
 			boolean methodStarted = false;
 			String line;
 			while((line = br.readLine()) != null) {
-				if(line.contains(methodName)) {
+				if(line.contains(methodName + "(")) {
 					methodStarted = true;
 					lineNo++;
 					continue;
