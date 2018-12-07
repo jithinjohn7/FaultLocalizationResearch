@@ -229,12 +229,17 @@ java -Xmx4096M -jar $GZOLTAR_JAR \
   -Dmax_perm_size=1024 \
   -Dinclude_suspiciousness_value=true \
   -Dstatistics_backend=NONE \
+  -Dfilter_spectra=NONE \
   -diagnose >> "$LOG_FILE" 2>&1
 #END=$(date +%s)
 #IN_SECONDS=$(echo "$END - $START" | bc)
 #SECONDS_IN_HUMAN_FORMAT=$(date -d@$IN_SECONDS -u +%H:%M:%S)
 #echo "[INFO] It tooks $SECONDS_IN_HUMAN_FORMAT to run GZoltar!" >> "$LOG_FILE" 2>&1
 echo "[INFO] End: $(date)" >> $LOG_FILE
+
+java -Xmx4096M -jar $GZOLTAR_JAR -listTests \
+  -Dproject_cp=$CP \
+  -Dgzoltar_data_dir=$DATA_DIR \
 
 popd > /dev/null 2>&1
 
