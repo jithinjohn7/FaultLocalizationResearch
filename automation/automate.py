@@ -8,6 +8,7 @@ import json
 from subprocess import Popen
 from itertools import islice
 import resource
+import copy
 
 project_id = sys.argv[1]
 defect_id = sys.argv[2]
@@ -187,8 +188,12 @@ masterTestsList = []
 
 def extractClassAndTestName(s):
     testName,testClass = s.split('(')
-    testClass = testClass.split(')')[0]
-    return [testClass,testName]
+    testClass = testClass.split(')')
+    testFailure=False
+    if testClass[-1] == "_F":
+        testFailure=True
+    testClass=testClass[0]
+    return [testClass,testName,testFailure]
 
 def extractTestInfoAndIndexes(element):
     masterIndex = activating_tests.index(element)
@@ -307,12 +312,24 @@ while running_processes:
 summary_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-slicing.summary"),"w")
 
 print(len(cov_matrix),len(cov_matrix[0]))
+suspic_dict={}
+totalPassed=0
+totalFailed=0
+
 with open(os.path.join(tacoco_result_dir,project_id,defect_id+"-old-cov-matrix.json"),"w") as out:
     json.dump(cov_matrix,out)
+
+old_cov_matrix=copy.deepcopy(cov_matrix)
+
 for test in activating_tests:
     testclass=test[0]
     testname=test[1]
-    row_number = test[2]
+    testFailure=test[2]
+    row_number = test[3]
+    if testFailure is True:
+        totalPassed+=1
+    else:
+        totalFailed+=1
     slice_file = os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
     column_numbers = []
     with open(slice_file,'r') as f:
@@ -333,16 +350,56 @@ for test in activating_tests:
     cov_matrix[row_number][:] = [False]*len(cov_matrix[row_number])
     for col in column_numbers:
         try:
-            col -= start
-            cov_matrix[row_number][col] = True
+            adj_col = col - start
+            cov_matrix[row_number][adj_col] = True
+            
             # return_msg = "changed " + str(row_number) + " " + str(col)
             # print(row_number,col)
             # print(return_msg)
         except:
             print("ERROR: rwo: " + str(row_number)+" col: " + str(col))
 
+    for col in range(len(cov_matrix[row_number])):
+
+        adj_col = col + start
+
+        if cov_matrix[row_number][col] is True:
+            if adj_col not in suspic_dict:
+                suspic_dict[adj_col]={"failed":0.0,"passed":0.0,"oldfailed":0.0,"oldpassed":0.0}
+            if testFailure is True:
+                suspic_dict[adj_col]["failed"]+=1
+            else:
+                suspic_dict[adj_col]["passed"]+=1
+
+        if old_cov_matrix[row_number][col] is True:
+            if adj_col not in suspic_dict:
+                suspic_dict[adj_col]={"failed":0.0,"passed":0.0,"oldfailed":0.0,"oldpassed":0.0}
+            if testFailure is True:
+                suspic_dict[adj_col]["oldfailed"]+=1
+            else:
+                suspic_dict[adj_col]["oldpassed"]+=1
+    
+
+
+
+
 # print(cov_matrix)
 with open(os.path.join(tacoco_result_dir,project_id,defect_id+"-updated-cov-matrix.json"),"w") as out:
     json.dump(cov_matrix,out)
 
 summary_file.close()
+
+tarantula_score_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-"+relevant_class+"-tarantula.score"),"w")
+f = sorted(suspic_dict)
+print("Total Failed: "+str(totalFailed))
+print("Total Passed: "+str(totalPassed))
+for key in f:
+    try:
+        suspic_dict[key]["score"]=(suspic_dict[key]["failed"]/totalFailed)/((suspic_dict[key]["passed"]/totalPassed)+(suspic_dict[key]["failed"]/totalFailed))
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["score"]=0.0
+
+    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"]/totalFailed)/((suspic_dict[key]["oldpassed"]/totalPassed)+(suspic_dict[key]["oldfailed"]/totalFailed))
+    tarantula_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
+tarantula_score_file.close()
