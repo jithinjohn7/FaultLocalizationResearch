@@ -292,7 +292,7 @@ for test in activating_tests:
         os.path.join(traces_dir,"trace."+testclass+"#"+testname) +  \
         " " + ",".join(slicing_criteria) + \
         " > " + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
-    # print("Preparing "+slice_command)
+    print("Preparing "+slice_command)
     slicer_commands.append(slice_command)
     # os.system(slice_command)
     # coverage_line_grep_command= "grep \"" + relevant_class  + "\\.\" " + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
@@ -304,6 +304,7 @@ while running_processes:
     for i, process in enumerate(running_processes):
         if process.poll() is not None:  # the process has finished
             running_processes[i] = next(processes, None)  # start new process
+            print(running_processes[i])
             if running_processes[i] is None: # no new processes
                 del running_processes[i]
                 break
@@ -326,7 +327,7 @@ for test in activating_tests:
     testname=test[1]
     testFailure=test[2]
     row_number = test[3]
-    if testFailure is True:
+    if testFailure is False:
         totalPassed+=1
     else:
         totalFailed+=1
@@ -346,8 +347,9 @@ for test in activating_tests:
     # print(column_numbers)
     new_count = len(column_numbers)
     old_count = cov_matrix[row_number].count(True)
-    summary_file.write(testclass+"#"+testname+" Diff: "+ str(old_count-new_count)  +" New Count: "+str(old_count)+" Old Count: "+str(new_count)+"\n")
-    cov_matrix[row_number][:] = [False]*len(cov_matrix[row_number])
+    summary_file.write(testclass+"#"+testname+" Diff: "+ str(old_count-new_count)  +" Old Count: "+str(old_count)+" New Count: "+str(new_count)+"\n")
+    if len(column_numbers) > 0:
+        cov_matrix[row_number][:] = [False]*len(cov_matrix[row_number])
     for col in column_numbers:
         try:
             adj_col = col - start
