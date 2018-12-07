@@ -9,6 +9,7 @@ from subprocess import Popen
 from itertools import islice
 import resource
 import copy
+import math
 
 project_id = sys.argv[1]
 defect_id = sys.argv[2]
@@ -391,10 +392,11 @@ with open(os.path.join(tacoco_result_dir,project_id,defect_id+"-updated-cov-matr
 
 summary_file.close()
 
-tarantula_score_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-"+relevant_class+"-tarantula.score"),"w")
 f = sorted(suspic_dict)
 print("Total Failed: "+str(totalFailed))
 print("Total Passed: "+str(totalPassed))
+
+tarantula_score_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-"+relevant_class+"-tarantula.score"),"w")
 for key in f:
     try:
         suspic_dict[key]["score"]=(suspic_dict[key]["failed"]/totalFailed)/((suspic_dict[key]["passed"]/totalPassed)+(suspic_dict[key]["failed"]/totalFailed))
@@ -405,3 +407,67 @@ for key in f:
     suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"]/totalFailed)/((suspic_dict[key]["oldpassed"]/totalPassed)+(suspic_dict[key]["oldfailed"]/totalFailed))
     tarantula_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
 tarantula_score_file.close()
+
+ochiai_score_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-"+relevant_class+"-ochiai.score"),"w")
+for key in f:
+    try:
+        suspic_dict[key]["score"]=(suspic_dict[key]["failed"])/math.sqrt(totalFailed*(suspic_dict[key]["failed"]+suspic_dict[key]["passed"]))
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["score"]=0.0
+
+    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/math.sqrt(totalFailed*(suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"]))
+    ochiai_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
+ochiai_score_file.close()
+
+
+sbi_score_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-"+relevant_class+"-sbi.score"),"w")
+for key in f:
+    try:
+        suspic_dict[key]["score"]=(suspic_dict[key]["failed"])/totalFailed
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["score"]=0.0
+
+    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/totalFailed
+    sbi_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
+sbi_score_file.close()
+
+
+jaccard_score_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-"+relevant_class+"-jaccard.score"),"w")
+for key in f:
+    try:
+        suspic_dict[key]["score"]=(suspic_dict[key]["failed"])/(totalFailed+suspic_dict[key]["passed"])
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["score"]=0.0
+
+    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/(totalFailed+suspic_dict[key]["oldpassed"])
+    jaccard_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
+jaccard_score_file.close()
+
+
+ochiai2_score_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-"+relevant_class+"-ochiai2.score"),"w")
+for key in f:
+    try:
+        suspic_dict[key]["score"]=(suspic_dict[key]["failed"] * (totalPassed-suspic_dict[key]["passed"]))/math.sqrt(((totalFailed-suspic_dict[key]["failed"])+totalPassed-suspic_dict[key]["passed"])*(suspic_dict[key]["failed"]+suspic_dict[key]["passed"]) * (totalFailed) * totalPassed)
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["score"]=0.0
+
+    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"] * (totalPassed-suspic_dict[key]["oldpassed"]))/math.sqrt(((totalFailed-suspic_dict[key]["oldfailed"])+totalPassed-suspic_dict[key]["oldpassed"])*(suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"]) * (totalFailed) * totalPassed)
+    ochiai2_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
+ochiai2_score_file.close()
+
+
+kulczynski2_score_file = open(os.path.join(tacoco_result_dir,project_id,defect_id+"-"+relevant_class+"-kulczynski2.score"),"w")
+for key in f:
+    try:
+        suspic_dict[key]["score"]=0.5 * ((suspic_dict[key]["failed"] / totalFailed) + (suspic_dict[key]["failed"]/ (suspic_dict[key]["failed"]+suspic_dict[key]["passed"])))
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["score"]=0.0
+
+    suspic_dict[key]["oldscore"]=0.5 * ((suspic_dict[key]["oldfailed"] / totalFailed) + (suspic_dict[key]["oldfailed"]/ (suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"])))
+    kulczynski2_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
+kulczynski2_score_file.close()
