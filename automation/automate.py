@@ -19,11 +19,11 @@ java8_home = "/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home"
 JAVA_HOME="JAVA_HOME"
 # tacoco_dir = "/Users/pranita/Downloads/Program_Repair/test-tacoco/tacoco"
 
-# os.system("export D4J_HOME=/Users/pranita/Downloads/Program_Repair/defects4j")
-# os.environ['D4J_HOME'] = "/Users/pranita/Downloads/Program_Repair/defects4j"
-# os.environ['GZOLTAR_JAR'] = "/Users/pranita/Downloads/Program_Repair/fault-localization-data/gzoltar/gzoltar.jar"
-# os.environ['PATH'] += os.pathsep+"/Users/pranita/Downloads/Program_Repair/defects4j/framework/bin"
-# os.environ['SLOC_HOME']="/usr/local/bin/sloccount"
+#os.system("export D4J_HOME=/Users/pranita/Downloads/Program_Repair/defects4j")
+#os.environ['D4J_HOME'] = "/Users/pranita/Downloads/Program_Repair/defects4j"
+#os.environ['GZOLTAR_JAR'] = "/Users/pranita/Downloads/Program_Repair/fault-localization-data/gzoltar/gzoltar.jar"
+#os.environ['PATH'] += os.pathsep+"/Users/pranita/Downloads/Program_Repair/defects4j/framework/bin"
+#os.environ['SLOC_HOME']="/usr/local/bin/sloccount"
 
 
 # Downgrade maven version
@@ -91,6 +91,10 @@ if not os.path.exists(os.path.join(project_dir,defect_id)):
     print("Running " + compile_command)
     os.system(compile_command)
     print("Running " + package_command)
+    os.system(package_command)
+    os.environ[JAVA_HOME]=java8_home
+    os.system(package_command)
+    os.environ[JAVA_HOME]=java6_home
     os.system(package_command)
 
     os.chdir(target_dir)
@@ -289,7 +293,7 @@ for test in activating_tests:
     slicing_criteria=[]
     for line in assert_list:
         slicing_criteria+=[testclass+"."+testname+":"+line+":*"]
-    slice_command="java -Xmx2g -jar "+os.path.join(tracer_dir,"slicer.jar")+" -p "+ \
+    slice_command="java -Xmx4g -jar "+os.path.join(tracer_dir,"slicer.jar")+" -p "+ \
         os.path.join(traces_dir,"trace."+testclass+"#"+testname) +  \
         " " + ",".join(slicing_criteria) + \
         " > " + os.path.join(traces_dir,"trace."+testclass+"#"+testname+".slice")
@@ -404,7 +408,11 @@ for key in f:
         # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
         suspic_dict[key]["score"]=0.0
 
-    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"]/totalFailed)/((suspic_dict[key]["oldpassed"]/totalPassed)+(suspic_dict[key]["oldfailed"]/totalFailed))
+    try:
+        suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"]/totalFailed)/((suspic_dict[key]["oldpassed"]/totalPassed)+(suspic_dict[key]["oldfailed"]/totalFailed))
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["oldscore"]=0.0
     tarantula_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
 tarantula_score_file.close()
 
@@ -416,7 +424,11 @@ for key in f:
         # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
         suspic_dict[key]["score"]=0.0
 
-    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/math.sqrt(totalFailed*(suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"]))
+    try:
+        suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/math.sqrt(totalFailed*(suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"]))
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["oldscore"]=0.0
     ochiai_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
 ochiai_score_file.close()
 
@@ -429,7 +441,11 @@ for key in f:
         # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
         suspic_dict[key]["score"]=0.0
 
-    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/totalFailed
+    try:
+        suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/totalFailed
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["oldscore"]=0.0
     sbi_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
 sbi_score_file.close()
 
@@ -442,7 +458,11 @@ for key in f:
         # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
         suspic_dict[key]["score"]=0.0
 
-    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/(totalFailed+suspic_dict[key]["oldpassed"])
+    try:
+        suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"])/(totalFailed+suspic_dict[key]["oldpassed"])
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["oldscore"]=0.0
     jaccard_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
 jaccard_score_file.close()
 
@@ -455,7 +475,11 @@ for key in f:
         # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
         suspic_dict[key]["score"]=0.0
 
-    suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"] * (totalPassed-suspic_dict[key]["oldpassed"]))/math.sqrt(((totalFailed-suspic_dict[key]["oldfailed"])+totalPassed-suspic_dict[key]["oldpassed"])*(suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"]) * (totalFailed) * totalPassed)
+    try:
+        suspic_dict[key]["oldscore"]=(suspic_dict[key]["oldfailed"] * (totalPassed-suspic_dict[key]["oldpassed"]))/math.sqrt(((totalFailed-suspic_dict[key]["oldfailed"])+totalPassed-suspic_dict[key]["oldpassed"])*(suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"]) * (totalFailed) * totalPassed)
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["oldscore"]=0.0
     ochiai2_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
 ochiai2_score_file.close()
 
@@ -468,6 +492,10 @@ for key in f:
         # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
         suspic_dict[key]["score"]=0.0
 
-    suspic_dict[key]["oldscore"]=0.5 * ((suspic_dict[key]["oldfailed"] / totalFailed) + (suspic_dict[key]["oldfailed"]/ (suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"])))
+    try:
+        suspic_dict[key]["oldscore"]=0.5 * ((suspic_dict[key]["oldfailed"] / totalFailed) + (suspic_dict[key]["oldfailed"]/ (suspic_dict[key]["oldfailed"]+suspic_dict[key]["oldpassed"])))
+    except ZeroDivisionError:
+        # print("ERROR: passed: "+ str(suspic_dict[key]["passed"])+" failed: "+str(suspic_dict[key]["failed"]))
+        suspic_dict[key]["oldscore"]=0.0
     kulczynski2_score_file.write(relevant_class+"#"+str(key)+","+str(suspic_dict[key]["score"])+","+str(suspic_dict[key]["oldscore"])+"\n")
 kulczynski2_score_file.close()
